@@ -1,25 +1,22 @@
 {
     "name": "payproof",
     "version": "1.0.0",
-    "description": "Blockchain income verification for freelancers on Monad",
+    "description": "Blockchain income verification for freelancers on Stellar testnet",
     "scripts": {
         "dev": "next dev",
         "build": "next build",
-        "start": "next start",
-        "compile": "hardhat compile",
-        "deploy": "hardhat run scripts/deploy.js --network monadTestnet"
+        "start": "next start"
     },
     "dependencies": {
+        "@stellar/freighter-api": "6.0.1",
         "next": "14.0.0",
         "react": "18.2.0",
         "react-dom": "18.2.0",
-        "ethers": "6.10.0",
         "pdf-lib": "1.17.1",
-        "qrcode": "1.5.3"
+        "qrcode": "1.5.3",
+        "stellar-sdk": "13.3.0"
     },
     "devDependencies": {
-        "hardhat": "2.19.0",
-        "@nomicfoundation/hardhat-toolbox": "3.0.0",
         "dotenv": "16.3.1"
     }
 }

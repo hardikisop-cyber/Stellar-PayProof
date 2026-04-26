@@ -1,265 +1,128 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import { CONTRACT_ADDRESS, CONTRACT_ABI, getContract } from "@/lib/contract";
+import { useMemo, useState } from "react";
 import { generateCertificate } from "@/lib/certificate";
+import {
+  buildPaymentSummary,
+  connectFreighterWallet,
+  fetchIncomingPayments,
+  isValidStellarAddress,
+  ledgerExplorerUrl,
+  sendBatchPayment,
+  sendSinglePayment,
+  shortAddress,
+  txExplorerUrl,
+} from "@/lib/stellar";
 
-const FAKE_EMPLOYEES = [
-  {
-    name: "Rahul Sharma — UI Designer",
-    address: "0xDc64a140Aa3E981100a9becA4E685f962f0cF6C9",
-  },
-  {
-    name: "Priya Patel — DAO Contributor",
-    address: "0x71bE63f3384a0DA5F6d29a544E4e3Db9E8C8B82f",
-  },
-  {
-    name: "Amit Kumar — Smart Contract Developer",
-    address: "0x8ba1f109551bD432803012645Ac136ddd64DBA72",
-  },
-  {
-    name: "Neha Singh — Content Writer",
-    address: "0x4e59b44847b379578588920eA3601DC8Eb57ebef",
-  },
-  {
-    name: "Vikram Gupta — Community Manager",
-    address: "0x2546BcD3c84621e001FfAa51030b2D694369f53e",
-  },
-  {
-    name: "Arjun Verma — QA Engineer",
-    address: "0x68B1D87F95Dd63E084ce8aD9582EB608DC17F81B",
-  },
-  {
-    name: "Divya Nair — Product Manager",
-    address: "0xc2575A0E9425D3b67f1F19BAdAa3cF295c95E5d3",
-  },
-  {
-    name: "Sanjay Reddy — DevOps Engineer",
-    address: "0xEc85f77414D4ce7119912A6862d1D591C3D51eaC",
-  },
-  {
-    name: "Kavya Iyer — UX Researcher",
-    address: "0x419F91df641920257f44860e357f3a2A7b646b2d",
-  },
-  {
-    name: "Rohit Desai — Backend Developer",
-    address: "0xDEADBEEF00000000000000000000000000000001",
-  },
-  {
-    name: "Anjali Mishra — Data Analyst",
-    address: "0x2C59b73Cc7841b89fC6B41a1D1C0bEA34D8B06B3",
-  },
-  {
-    name: "Nikhil Sharma — Blockchain Auditor",
-    address: "0xd7E34D92e92e8B8C0e9aF9fBf66b9d72A3F6cE44",
-  },
-  {
-    name: "Pooja Gupta — UI/UX Designer",
-    address: "0x765c6f7055F0fAbE3eF9e7e8D5C4b3a2f1E8D7c6",
-  },
-  {
-    name: "Harsh Patel — Full Stack Developer",
-    address: "0x876f7099C5f5A5e6D9c8B7a6F5e4D3c2B1A0f9E8",
-  },
-  {
-    name: "Ritika Verma — Social Media Manager",
-    address: "0x987a8B0C1D2E3F4a5b6C7d8E9F0a1B2c3D4e5f6a",
-  },
-];
-
-const MONAD_CONFIG = {
-  chainId: "0x27AF",
-  chainName: "Monad Testnet",
-  rpcUrls: ["https://testnet-rpc.monad.xyz"],
-  nativeCurrency: { name: "MON", symbol: "MON", decimals: 18 },
-  blockExplorerUrls: ["https://testnet.monadexplorer.com"],
-};
+function parseBatchAddresses(input) {
+  return input
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
 
 export default function PayProofApp() {
   const [activeTab, setActiveTab] = useState("single");
   const [connected, setConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
   const [employeeAddr, setEmployeeAddr] = useState("");
-  const [amount, setAmount] = useState("");
+  const [amount, setAmount] = useState("1");
   const [note, setNote] = useState("");
   const [status, setStatus] = useState("");
   const [statusType, setStatusType] = useState("");
   const [txHash, setTxHash] = useState("");
   const [payments, setPayments] = useState([]);
-  const [batchStatus, setBatchStatus] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processedCount, setProcessedCount] = useState(0);
-  const [batchPaymentStatus, setBatchPaymentStatus] = useState({});
-  const [elapsedTime, setElapsedTime] = useState(0);
 
-  useEffect(() => {
-    const checkConnection = async () => {
-      if (typeof window !== "undefined" && window.ethereum) {
-        try {
-          const accounts = await window.ethereum.request({
-            method: "eth_accounts",
-          });
-          if (accounts.length > 0) {
-            setWalletAddress(accounts[0]);
-            setConnected(true);
-          }
-        } catch (error) {
-          console.error("Error checking connection:", error);
-        }
-      }
-    };
+  const [batchAddressesText, setBatchAddressesText] = useState("");
+  const [batchAmount, setBatchAmount] = useState("0.1");
+  const [batchNote, setBatchNote] = useState("PayProof batch payout");
+  const [batchStatus, setBatchStatus] = useState("");
+  const [batchStatusType, setBatchStatusType] = useState("");
+  const [batchResult, setBatchResult] = useState(null);
 
-    checkConnection();
-
-    if (typeof window !== "undefined" && window.ethereum) {
-      window.ethereum.on("accountsChanged", (accounts) => {
-        if (accounts.length > 0) {
-          setWalletAddress(accounts[0]);
-          setConnected(true);
-        } else {
-          setConnected(false);
-          setWalletAddress("");
-        }
-      });
-
-      window.ethereum.on("chainChanged", () => {
-        window.location.reload();
-      });
-    }
-  }, []);
+  const parsedBatchAddresses = useMemo(
+    () => parseBatchAddresses(batchAddressesText),
+    [batchAddressesText],
+  );
 
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      setStatus("MetaMask not installed");
-      setStatusType("error");
-      return;
-    }
-
     try {
-      const accounts = await window.ethereum.request({
-        method: "eth_requestAccounts",
-      });
-
-      const chainId = await window.ethereum.request({ method: "eth_chainId" });
-
-      if (chainId !== MONAD_CONFIG.chainId) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: MONAD_CONFIG.chainId }],
-          });
-        } catch (switchError) {
-          if (switchError.code === 4902) {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [MONAD_CONFIG],
-            });
-          } else {
-            throw switchError;
-          }
-        }
-      }
-
-      setWalletAddress(accounts[0]);
+      const wallet = await connectFreighterWallet();
+      setWalletAddress(wallet);
       setConnected(true);
-      setStatus("Wallet connected!");
+      setStatus("Freighter connected on Stellar testnet");
       setStatusType("success");
     } catch (error) {
-      console.error("Error connecting wallet:", error);
-      setStatus("Failed to connect wallet");
+      setStatus(error.message || "Could not connect Freighter wallet");
       setStatusType("error");
     }
   };
 
+  const refreshEmployeeHistory = async (address) => {
+    const history = await fetchIncomingPayments(address, 30);
+    setPayments(history);
+    return history;
+  };
+
   const handlePayEmployee = async () => {
-    if (!employeeAddr || !amount) {
-      setStatus("Please fill in all fields");
+    if (!connected) {
+      setStatus("Connect Freighter first");
       setStatusType("error");
       return;
     }
 
-    if (!ethers.isAddress(employeeAddr)) {
-      setStatus("Invalid employee address");
+    if (!employeeAddr || !amount) {
+      setStatus("Please fill in employee address and amount");
+      setStatusType("error");
+      return;
+    }
+
+    if (!isValidStellarAddress(employeeAddr)) {
+      setStatus("Invalid Stellar address");
       setStatusType("error");
       return;
     }
 
     setIsProcessing(true);
-    setStatus("Processing payment...");
+    setStatus("Submitting payment to Stellar testnet...");
     setStatusType("info");
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        signer,
-      );
-
-      const amountWei = ethers.parseEther(amount);
-
-      const tx = await contract.payEmployee(employeeAddr, note, {
-        value: amountWei,
+      const result = await sendSinglePayment({
+        fromAddress: walletAddress,
+        toAddress: employeeAddr,
+        amountXlm: amount,
+        note,
       });
 
-      const receipt = await tx.wait();
-
-      setTxHash(receipt.hash);
-      setStatus(`Payment sent! TX: ${receipt.hash.slice(0, 10)}...`);
+      setTxHash(result.hash);
+      setStatus("Payment confirmed on Stellar testnet");
       setStatusType("success");
 
-      const history = await contract.getHistory(employeeAddr);
-      const displayPayments = history.map((p) => ({
-        amount: ethers.formatEther(p.amount),
-        timestamp: new Date(Number(p.timestamp) * 1000).toLocaleString(),
-        blockNumber: p.blockNumber.toString(),
-        employer: p.employer,
-        note: p.note,
-      }));
-
-      setPayments(displayPayments);
-
+      const history = await refreshEmployeeHistory(employeeAddr);
       if (history.length > 0) {
-        const latestPayment = history[0];
-        const earliestPayment = history[history.length - 1];
-
-        const earliestDate = new Date(Number(earliestPayment.timestamp) * 1000);
-        const latestDate = new Date(Number(latestPayment.timestamp) * 1000);
-
-        const totalAmount = history.reduce((sum, p) => sum + p.amount, 0n);
-
+        const summary = buildPaymentSummary(history);
         const certificateData = {
-          employeeName: note || employeeAddr.slice(0, 8),
+          employeeName: note || shortAddress(employeeAddr),
           employeeAddress: employeeAddr,
-          totalAmountWei: totalAmount.toString(),
-          paymentCount: history.length,
-          fromDate: earliestDate.toLocaleDateString(),
-          toDate: latestDate.toLocaleDateString(),
-          payments: history.map((p) => ({
-            amount: p.amount.toString(),
-            timestamp: p.timestamp.toString(),
-            blockNumber: p.blockNumber.toString(),
-            employer: p.employer,
-            note: p.note,
+          totalAmountXlm: summary.totalAmountXlm,
+          paymentCount: summary.paymentCount,
+          fromDate: summary.earliestDate,
+          toDate: summary.latestDate,
+          payments: history.map((payment) => ({
+            amountXlm: payment.amountXlm.toFixed(7),
+            timestamp: payment.timestamp,
+            ledger: payment.ledger,
+            employer: payment.from,
+            note: payment.note,
           })),
-          contractAddress: CONTRACT_ADDRESS,
         };
 
-        try {
-          await generateCertificate(certificateData);
-        } catch (pdfError) {
-          console.error("PDF generation failed:", pdfError);
-        }
+        await generateCertificate(certificateData);
       }
-
-      setEmployeeAddr("");
-      setAmount("");
-      setNote("");
     } catch (error) {
-      console.error("Error:", error);
-      setStatus(`Error: ${error.message}`);
+      setStatus(error.message || "Payment failed");
       setStatusType("error");
     } finally {
       setIsProcessing(false);
@@ -267,130 +130,60 @@ export default function PayProofApp() {
   };
 
   const handleBatchPay = async () => {
-    setIsProcessing(true);
-    setBatchStatus("Starting batch payment...");
-    const startTime = Date.now();
+    if (!connected) {
+      setBatchStatus("Connect Freighter first");
+      setBatchStatusType("error");
+      return;
+    }
 
-    const initialStatus = {};
-    FAKE_EMPLOYEES.forEach((emp, idx) => {
-      initialStatus[idx] = "pending";
-    });
-    setBatchPaymentStatus(initialStatus);
-    setProcessedCount(0);
+    if (parsedBatchAddresses.length === 0) {
+      setBatchStatus("Add at least one recipient address");
+      setBatchStatusType("error");
+      return;
+    }
+
+    const invalidAddress = parsedBatchAddresses.find(
+      (address) => !isValidStellarAddress(address),
+    );
+
+    if (invalidAddress) {
+      setBatchStatus(`Invalid Stellar address in list: ${invalidAddress}`);
+      setBatchStatusType("error");
+      return;
+    }
+
+    setIsProcessing(true);
+    setBatchStatus("Submitting multi-operation batch payment...");
+    setBatchStatusType("info");
 
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        CONTRACT_ABI,
-        signer,
-      );
+      const startedAt = Date.now();
+      const recipients = parsedBatchAddresses.map((address) => ({
+        address,
+        amountXlm: batchAmount,
+      }));
 
-      const addresses = FAKE_EMPLOYEES.map((emp) => emp.address);
-      const amounts = FAKE_EMPLOYEES.map(() => ethers.parseEther("0.001"));
-
-      const totalAmount = amounts.reduce((a, b) => a + b, 0n);
-
-      const tx = await contract.batchPay(
-        addresses,
-        amounts,
-        "Monad Speed Test",
-        {
-          value: totalAmount,
-        },
-      );
-
-      let progressCounter = 0;
-      const progressInterval = setInterval(() => {
-        progressCounter++;
-        if (progressCounter <= 15) {
-          setProcessedCount(progressCounter);
-        }
-      }, 300);
-
-      const receipt = await tx.wait();
-      clearInterval(progressInterval);
-
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(2);
-      setElapsedTime(elapsed);
-
-      const newStatus = {};
-      FAKE_EMPLOYEES.forEach((_, idx) => {
-        newStatus[idx] = "confirmed";
+      const result = await sendBatchPayment({
+        fromAddress: walletAddress,
+        recipients,
+        note: batchNote,
       });
-      setBatchPaymentStatus(newStatus);
-      setProcessedCount(15);
 
-      setBatchStatus(
-        `✓ All 15 payments confirmed in ${elapsed}s | 1 transaction | Monad TPS: ~10,000`,
-      );
-
-      const allPayments = [];
-      for (let i = 0; i < addresses.length; i++) {
-        const history = await contract.getHistory(addresses[i]);
-        allPayments.push({
-          employeeIdx: i,
-          history: history,
-        });
-      }
-
-      let pdfDelay = 0;
-      for (const paymentData of allPayments) {
-        setTimeout(async () => {
-          const idx = paymentData.employeeIdx;
-          const history = paymentData.history;
-          const employee = FAKE_EMPLOYEES[idx];
-
-          if (history.length > 0) {
-            const totalReceivedWei = history.reduce(
-              (sum, p) => sum + p.amount,
-              0n,
-            );
-            const earliestDate = new Date(
-              Number(history[history.length - 1].timestamp) * 1000,
-            );
-            const latestDate = new Date(Number(history[0].timestamp) * 1000);
-
-            const certificateData = {
-              employeeName: employee.name,
-              employeeAddress: addresses[idx],
-              totalAmountWei: totalReceivedWei.toString(),
-              paymentCount: history.length,
-              fromDate: earliestDate.toLocaleDateString(),
-              toDate: latestDate.toLocaleDateString(),
-              payments: history.map((p) => ({
-                amount: p.amount.toString(),
-                timestamp: p.timestamp.toString(),
-                blockNumber: p.blockNumber.toString(),
-                employer: p.employer,
-                note: p.note,
-              })),
-              contractAddress: CONTRACT_ADDRESS,
-            };
-
-            try {
-              await generateCertificate(certificateData);
-            } catch (pdfErr) {
-              console.error(
-                `PDF generation failed for ${employee.name}:`,
-                pdfErr,
-              );
-            }
-          }
-        }, pdfDelay);
-
-        pdfDelay += 100;
-      }
-
-      setTimeout(() => {
-        setBatchStatus(
-          "✓ All certificates generated and downloaded successfully",
-        );
-      }, pdfDelay);
+      const elapsedMs = Date.now() - startedAt;
+      setBatchResult({
+        count: recipients.length,
+        amountEach: batchAmount,
+        total: (Number(batchAmount) * recipients.length).toFixed(7),
+        ledger: result.ledger,
+        hash: result.hash,
+        elapsedMs,
+      });
+      setBatchStatus("Batch payment confirmed");
+      setBatchStatusType("success");
     } catch (error) {
-      console.error("Error:", error);
-      setBatchStatus(`Error: ${error.message}`);
+      setBatchResult(null);
+      setBatchStatus(error.message || "Batch payment failed");
+      setBatchStatusType("error");
     } finally {
       setIsProcessing(false);
     }
@@ -402,17 +195,15 @@ export default function PayProofApp() {
         <div>
           <h1>PayProof</h1>
           <p style={{ fontSize: "12px", color: "var(--muted)" }}>
-            Blockchain Income Verification on Monad
+            Blockchain income verification on Stellar Testnet
           </p>
         </div>
         <div className="header-right">
           {connected ? (
-            <div className="wallet-badge">
-              Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-            </div>
+            <div className="wallet-badge">Connected: {shortAddress(walletAddress)}</div>
           ) : (
             <button className="btn" onClick={connectWallet}>
-              Connect Wallet
+              Connect Freighter
             </button>
           )}
         </div>
@@ -425,12 +216,12 @@ export default function PayProofApp() {
             <>
               {" "}
               <a
-                href={`https://testnet.monadexplorer.com/tx/${txHash}`}
+                href={txExplorerUrl(txHash)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="link"
               >
-                View on Explorer
+                View Transaction
               </a>
             </>
           )}
@@ -442,13 +233,13 @@ export default function PayProofApp() {
           className={`tab-button ${activeTab === "single" ? "active" : ""}`}
           onClick={() => setActiveTab("single")}
         >
-          Pay Employee
+          Single Payment
         </button>
         <button
           className={`tab-button ${activeTab === "batch" ? "active" : ""}`}
           onClick={() => setActiveTab("batch")}
         >
-          Mass Payroll Demo
+          Batch Payment
         </button>
       </div>
 
@@ -457,26 +248,27 @@ export default function PayProofApp() {
           <h2 style={{ marginBottom: "20px" }}>Pay Single Employee</h2>
 
           <div className="form-group">
-            <label>Employee Wallet Address</label>
+            <label>Employee Stellar Address</label>
             <input
               type="text"
               className="input"
-              placeholder="0x..."
+              placeholder="G..."
               value={employeeAddr}
-              onChange={(e) => setEmployeeAddr(e.target.value)}
+              onChange={(event) => setEmployeeAddr(event.target.value.trim())}
             />
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Amount (MON)</label>
+              <label>Amount (XLM)</label>
               <input
                 type="number"
                 className="input"
-                placeholder="0.1"
-                step="0.001"
+                placeholder="1"
+                step="0.0000001"
+                min="0"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(event) => setAmount(event.target.value)}
               />
             </div>
             <div className="form-group">
@@ -484,9 +276,9 @@ export default function PayProofApp() {
               <input
                 type="text"
                 className="input"
-                placeholder="e.g., March salary"
+                placeholder="e.g., April salary"
                 value={note}
-                onChange={(e) => setNote(e.target.value)}
+                onChange={(event) => setNote(event.target.value)}
               />
             </div>
           </div>
@@ -497,42 +289,40 @@ export default function PayProofApp() {
             disabled={!connected || isProcessing}
             style={{ width: "100%", marginTop: "16px" }}
           >
-            {isProcessing
-              ? "Processing..."
-              : connected
-                ? "Send Payment + Generate PDF"
-                : "Connect Wallet First"}
+            {isProcessing ? "Processing..." : "Send Payment + Generate PDF"}
           </button>
 
           {payments.length > 0 && (
             <div style={{ marginTop: "24px" }}>
-              <h3 style={{ marginBottom: "12px" }}>Payment History</h3>
+              <h3 style={{ marginBottom: "12px" }}>Incoming History for Recipient</h3>
               <table className="table">
                 <thead>
                   <tr>
                     <th>Date</th>
-                    <th>Amount (MON)</th>
+                    <th>Amount (XLM)</th>
                     <th>From</th>
-                    <th>Block</th>
+                    <th>Ledger</th>
+                    <th>Memo</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {payments.slice(0, 10).map((p, idx) => (
-                    <tr key={idx}>
-                      <td>{p.timestamp}</td>
-                      <td>{p.amount}</td>
-                      <td>
-                        {p.employer.slice(0, 6)}...{p.employer.slice(-4)}
-                      </td>
+                  {payments.slice(0, 20).map((payment, index) => (
+                    <tr key={`${payment.hash}-${index}`}>
+                      <td>{new Date(payment.timestampMs).toLocaleString()}</td>
+                      <td>{payment.amountXlm.toFixed(7)}</td>
+                      <td>{shortAddress(payment.from)}</td>
                       <td>
                         <a
-                          href={`https://testnet.monadexplorer.com/block/${p.blockNumber}`}
+                          href={ledgerExplorerUrl(payment.ledger)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="link"
                         >
-                          {p.blockNumber}
+                          {payment.ledger}
                         </a>
+                      </td>
+                      <td style={{ fontSize: "12px", color: "var(--muted)" }}>
+                        {payment.note || "-"}
                       </td>
                     </tr>
                   ))}
@@ -545,141 +335,112 @@ export default function PayProofApp() {
 
       {activeTab === "batch" && (
         <div className="grid-2">
-          <div>
-            <div className="card">
-              <h2 style={{ marginBottom: "20px" }}>Mass Payroll Demo</h2>
-              <p
-                style={{
-                  fontSize: "12px",
-                  color: "var(--muted)",
-                  marginBottom: "16px",
-                }}
-              >
-                Send 0.001 MON to 15 freelancers in a single transaction. Watch
-                Monad's parallel processing in action.
-              </p>
+          <div className="card">
+            <h2 style={{ marginBottom: "20px" }}>Batch Payroll</h2>
+            <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "16px" }}>
+              Submit one Stellar transaction with multiple payment operations.
+              Each line below must be a funded Stellar testnet account.
+            </p>
 
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Amount</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {FAKE_EMPLOYEES.map((emp, idx) => (
-                    <tr key={idx}>
-                      <td style={{ fontSize: "12px" }}>
-                        {emp.name.split(" — ")[0]}
-                      </td>
-                      <td>0.001 MON</td>
-                      <td>
-                        {batchPaymentStatus[idx] === "confirmed" ? (
-                          <span className="badge badge-green">✓ Confirmed</span>
-                        ) : batchPaymentStatus[idx] === "pending" ? (
-                          <span className="badge badge-purple">
-                            ⏳ Processing
-                          </span>
-                        ) : (
-                          <span
-                            style={{ fontSize: "11px", color: "var(--muted)" }}
-                          >
-                            Pending
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-
-              <button
-                className="btn"
-                onClick={handleBatchPay}
-                disabled={!connected || isProcessing}
-                style={{ width: "100%", marginTop: "20px" }}
-              >
-                {isProcessing
-                  ? `🚀 Processing (${processedCount}/15)...`
-                  : connected
-                    ? "🚀 Pay All 15 — Watch Parallel Speed"
-                    : "Connect Wallet First"}
-              </button>
-
-              {isProcessing && (
-                <div style={{ marginTop: "16px" }}>
-                  <div className="progress-bar">
-                    <div
-                      className="progress-fill"
-                      style={{ width: `${(processedCount / 15) * 100}%` }}
-                    ></div>
-                  </div>
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      textAlign: "center",
-                      color: "var(--purple)",
-                    }}
-                  >
-                    Processing... {processedCount}/15 confirmed
-                  </p>
-                </div>
-              )}
-
-              {elapsedTime && (
-                <div className="summary-box">
-                  <div className="summary-item">
-                    <div className="summary-item-label">Transactions</div>
-                    <div className="summary-item-value">1</div>
-                  </div>
-                  <div className="summary-item">
-                    <div className="summary-item-label">Payments</div>
-                    <div className="summary-item-value">15</div>
-                  </div>
-                  <div className="summary-item">
-                    <div className="summary-item-label">Total Time</div>
-                    <div className="summary-item-value">{elapsedTime}s</div>
-                  </div>
-                  <div className="summary-item">
-                    <div className="summary-item-label">Monad TPS</div>
-                    <div className="summary-item-value">~10K</div>
-                  </div>
-                </div>
-              )}
+            <div className="form-group">
+              <label>Recipient Addresses (one per line)</label>
+              <textarea
+                className="input"
+                rows={8}
+                placeholder="G...\nG...\nG..."
+                value={batchAddressesText}
+                onChange={(event) => setBatchAddressesText(event.target.value)}
+              />
             </div>
+
+            <div className="form-row">
+              <div className="form-group">
+                <label>Amount Per Address (XLM)</label>
+                <input
+                  type="number"
+                  className="input"
+                  min="0"
+                  step="0.0000001"
+                  value={batchAmount}
+                  onChange={(event) => setBatchAmount(event.target.value)}
+                />
+              </div>
+              <div className="form-group">
+                <label>Batch Memo</label>
+                <input
+                  type="text"
+                  className="input"
+                  value={batchNote}
+                  onChange={(event) => setBatchNote(event.target.value)}
+                />
+              </div>
+            </div>
+
+            <button
+              className="btn"
+              onClick={handleBatchPay}
+              disabled={!connected || isProcessing}
+              style={{ width: "100%", marginTop: "16px" }}
+            >
+              {isProcessing ? "Processing..." : "Run Batch Payment"}
+            </button>
+
+            {batchStatus && (
+              <div className={`status-message status-${batchStatusType}`} style={{ marginTop: "16px" }}>
+                {batchStatus}
+              </div>
+            )}
           </div>
 
-          <div
-            className="card"
-            style={{ maxHeight: "600px", overflowY: "auto" }}
-          >
-            <h3 style={{ marginBottom: "16px" }}>Live Feed</h3>
-            <div className="live-feed">
-              {batchStatus ? (
-                <div style={{ padding: "12px", textAlign: "center" }}>
-                  <p style={{ color: "var(--purple)", fontSize: "12px" }}>
-                    {batchStatus}
-                  </p>
-                </div>
-              ) : (
-                <p style={{ color: "var(--muted)", fontSize: "12px" }}>
-                  Awaiting payment execution...
-                </p>
-              )}
-              {Object.entries(batchPaymentStatus).map(([idx, status]) => {
-                if (status === "confirmed") {
-                  const emp = FAKE_EMPLOYEES[parseInt(idx)];
-                  return (
-                    <div key={idx} className="feed-item">
-                      <span style={{ color: "#4caf50" }}>✓</span> {emp.name} —
-                      0.001 MON
-                    </div>
-                  );
-                }
-                return null;
-              })}
+          <div className="card">
+            <h3 style={{ marginBottom: "16px" }}>Batch Summary</h3>
+            <div className="summary-box">
+              <div className="summary-item">
+                <div className="summary-item-label">Recipients</div>
+                <div className="summary-item-value">{parsedBatchAddresses.length}</div>
+              </div>
+              <div className="summary-item">
+                <div className="summary-item-label">Amount Each</div>
+                <div className="summary-item-value">{batchAmount || "0"} XLM</div>
+              </div>
             </div>
+
+            {batchResult ? (
+              <div>
+                <p style={{ fontSize: "13px", marginBottom: "10px" }}>
+                  Batch confirmed in {(batchResult.elapsedMs / 1000).toFixed(2)}s.
+                </p>
+                <p style={{ fontSize: "13px", marginBottom: "10px" }}>
+                  Total sent: {batchResult.total} XLM
+                </p>
+                <p style={{ fontSize: "13px", marginBottom: "10px" }}>
+                  Ledger: {" "}
+                  <a
+                    href={ledgerExplorerUrl(batchResult.ledger)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link"
+                  >
+                    {batchResult.ledger}
+                  </a>
+                </p>
+                <p style={{ fontSize: "13px" }}>
+                  Transaction: {" "}
+                  <a
+                    href={txExplorerUrl(batchResult.hash)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="link"
+                  >
+                    {shortAddress(batchResult.hash)}
+                  </a>
+                </p>
+              </div>
+            ) : (
+              <p style={{ color: "var(--muted)", fontSize: "12px" }}>
+                No batch submitted yet.
+              </p>
+            )}
           </div>
         </div>
       )}

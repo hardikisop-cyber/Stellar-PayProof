@@ -1,122 +1,81 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ethers } from "ethers";
-import { getReadContract } from "@/lib/contract";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { generateCertificate } from "@/lib/certificate";
+import {
+  accountExplorerUrl,
+  buildPaymentSummary,
+  fetchIncomingPayments,
+  isValidStellarAddress,
+  ledgerExplorerUrl,
+  shortAddress,
+} from "@/lib/stellar";
 
-export default function VerifyPage({ params }) {
+export default function VerifyPage() {
+  const params = useParams();
+  const address = params?.address || "";
+
   const [loading, setLoading] = useState(true);
   const [history, setHistory] = useState([]);
-  const [rawHistory, setRawHistory] = useState([]);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState("");
-  const [address, setAddress] = useState("");
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const resolvedAddress = await params;
-        const addr = resolvedAddress.address;
-        setAddress(addr);
-
-        if (!ethers.isAddress(addr)) {
-          setError("Invalid address format");
-          setLoading(false);
+        if (!address || !isValidStellarAddress(address)) {
+          setError("Invalid Stellar address format");
           return;
         }
 
-        const readContract = getReadContract();
-
-        const paymentHistory = await readContract.getHistory(addr);
-        
+        const paymentHistory = await fetchIncomingPayments(address, 50);
         if (paymentHistory.length === 0) {
-          setError("No payment history found for this address");
-          setLoading(false);
+          setError("No incoming XLM payment history found for this address");
           return;
         }
 
-        setRawHistory(paymentHistory);
-          amount: ethers.formatEther(p.amount),
-          timestamp: new Date(Number(p.timestamp) * 1000),
-          blockNumber: p.blockNumber.toString(),
-          note: p.note,
-        }));
-
-        setHistory(displayHistory);
-
-        const fromTimestamp = 0;
-        const summaryData = await readContract.getSummary(addr, fromTimestamp);
-
-        setSummary({
-          totalAmount: ethers.formatEther(summaryData.totalAmount),
-          paymentCount: summaryData.paymentCount.toString(),
-          earliestPayment:
-            summaryData.earliestPayment > 0
-              ? new Date(
-                  Number(summaryData.earliestPayment) * 1000,
-                ).toLocaleDateString()
-              : "N/A",
-          latestPayment:
-            summaryData.latestPayment > 0
-              ? new Date(
-                  Number(summaryData.latestPayment) * 1000,
-                ).toLocaleDateString()
-              : "N/A",
-        });
-      } catch (err) {
-        console.error("Error loading data:", err);
-        setError(`Error loading data: ${err.message}`);
+        setHistory(paymentHistory);
+        setSummary(buildPaymentSummary(paymentHistory));
+      } catch (loadError) {
+        setError(loadError.message || "Failed to load payment history");
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, [params]);
+  }, [address]);
 
   const handleGenerateCertificate = async () => {
-    if (rawHistory.length === 0 || !summary) {
+    if (!summary || history.length === 0) {
       return;
     }
 
-    const earliestDate = new Date(Number(rawHistory[rawHistory.length - 1].timestamp) * 1000);
-    const latestDate = new Date(Number(rawHistory[0].timestamp) * 1000);
-
-    const totalReceivedWei = rawHistory.reduce((sum, p) => sum + p.amount, 0n);
-
     const certificateData = {
-      employeeName: address.slice(0, 8),
+      employeeName: shortAddress(address),
       employeeAddress: address,
-      totalAmountWei: totalReceivedWei.toString(),
-      paymentCount: rawHistory.length,
-      fromDate: earliestDate.toLocaleDateString(),
-      toDate: latestDate.toLocaleDateString(),
-      payments: rawHistory.map((p) => ({
-        amount: p.amount,
-        timestamp: p.timestamp,
-        blockNumber: p.blockNumber,
-        employer: p.employer,
-        note: p.note,
+      totalAmountXlm: summary.totalAmountXlm,
+      paymentCount: summary.paymentCount,
+      fromDate: summary.earliestDate,
+      toDate: summary.latestDate,
+      payments: history.map((payment) => ({
+        amountXlm: payment.amountXlm.toFixed(7),
+        timestamp: payment.timestamp,
+        ledger: payment.ledger,
+        employer: payment.from,
+        note: payment.note,
       })),
-      contractAddress: process.env.NEXT_PUBLIC_CONTRACT_ADDRESS,
     };
 
-    try {
-      await generateCertificate(certificateData);
-    } catch (err) {
-      console.error("Error generating certificate:", err);
-    }
+    await generateCertificate(certificateData);
   };
 
   if (loading) {
     return (
       <div className="container">
-        <div
-          className="card"
-          style={{ textAlign: "center", marginTop: "40px" }}
-        >
-          <p>Loading income verification...</p>
+        <div className="card" style={{ textAlign: "center", marginTop: "40px" }}>
+          <p>Loading Stellar payment proof...</p>
         </div>
       </div>
     );
@@ -126,14 +85,8 @@ export default function VerifyPage({ params }) {
     return (
       <div className="container">
         <div className="card" style={{ marginTop: "40px" }}>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "40px",
-              color: "#ff6b6b",
-            }}
-          >
-            <h2 style={{ marginBottom: "16px" }}>⚠ Not Found</h2>
+          <div style={{ textAlign: "center", padding: "40px", color: "#ff6b6b" }}>
+            <h2 style={{ marginBottom: "16px" }}>Verification Not Found</h2>
             <p>{error}</p>
           </div>
         </div>
@@ -151,20 +104,11 @@ export default function VerifyPage({ params }) {
 
       <div className="card">
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div
-            className="badge badge-green"
-            style={{ fontSize: "18px", padding: "8px 16px" }}
-          >
-            ✓ VERIFIED
+          <div className="badge badge-green" style={{ fontSize: "18px", padding: "8px 16px" }}>
+            Verified on Stellar Testnet
           </div>
-          <p
-            style={{
-              marginTop: "16px",
-              fontSize: "14px",
-              color: "var(--muted)",
-            }}
-          >
-            This income record is permanently stored on the Monad Blockchain
+          <p style={{ marginTop: "16px", fontSize: "14px", color: "var(--muted)" }}>
+            This income proof is verifiable using public Stellar ledger data.
           </p>
         </div>
 
@@ -177,14 +121,8 @@ export default function VerifyPage({ params }) {
             marginBottom: "24px",
           }}
         >
-          <p
-            style={{
-              fontSize: "11px",
-              color: "var(--muted)",
-              marginBottom: "6px",
-            }}
-          >
-            Wallet Address
+          <p style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "6px" }}>
+            Verified Wallet Address
           </p>
           <p
             style={{
@@ -192,72 +130,70 @@ export default function VerifyPage({ params }) {
               fontSize: "13px",
               color: "var(--purple)",
               wordBreak: "break-all",
+              marginBottom: "8px",
             }}
           >
             {address}
           </p>
+          <a href={accountExplorerUrl(address)} target="_blank" rel="noopener noreferrer" className="link">
+            Open Account in Explorer
+          </a>
         </div>
 
         {summary && (
           <div className="summary-box">
             <div className="summary-item">
               <div className="summary-item-label">Total Received</div>
-              <div className="summary-item-value">
-                {summary.totalAmount} MON
-              </div>
+              <div className="summary-item-value">{summary.totalAmountXlm} XLM</div>
             </div>
             <div className="summary-item">
               <div className="summary-item-label">Payment Count</div>
               <div className="summary-item-value">{summary.paymentCount}</div>
             </div>
             <div className="summary-item">
-              <div className="summary-item-label">Active Since</div>
+              <div className="summary-item-label">First Payment</div>
               <div className="summary-item-value" style={{ fontSize: "12px" }}>
-                {summary.earliestPayment}
+                {summary.earliestDate}
               </div>
             </div>
             <div className="summary-item">
               <div className="summary-item-label">Latest Payment</div>
               <div className="summary-item-value" style={{ fontSize: "12px" }}>
-                {summary.latestPayment}
+                {summary.latestDate}
               </div>
             </div>
           </div>
         )}
 
-        <h3 style={{ marginTop: "32px", marginBottom: "16px" }}>
-          Payment History
-        </h3>
+        <h3 style={{ marginTop: "32px", marginBottom: "16px" }}>Incoming Payments</h3>
         <table className="table">
           <thead>
             <tr>
               <th>Date</th>
-              <th>Amount (MON)</th>
+              <th>Amount (XLM)</th>
               <th>From</th>
-              <th>Block</th>
-              <th>Note</th>
+              <th>Ledger</th>
+              <th>Memo</th>
             </tr>
           </thead>
           <tbody>
-            {history.map((p, idx) => (
-              <tr key={idx}>
-                <td>{p.timestamp.toLocaleString()}</td>
-                <td>{p.amount}</td>
-                <td>
-                  {p.employer.slice(0, 6)}...{p.employer.slice(-4)}
-                </td>
+            {history.map((payment, index) => (
+              <tr key={`${payment.hash}-${index}`}>
+                <td>{new Date(payment.timestampMs).toLocaleString()}</td>
+                <td>{payment.amountXlm.toFixed(7)}</td>
+                <td>{shortAddress(payment.from)}</td>
                 <td>
                   <a
-                    href={`https://testnet.monadexplorer.com/block/${p.blockNumber}`}
+                    href={ledgerExplorerUrl(payment.ledger)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="link"
                   >
-                    {p.blockNumber}
+                    {payment.ledger}
                   </a>
                 </td>
                 <td style={{ fontSize: "12px", color: "var(--muted)" }}>
-                  {p.note || "—"}
+                  {payment.note || "-"}
                 </td>
               </tr>
             ))}
@@ -282,7 +218,7 @@ export default function VerifyPage({ params }) {
             color: "var(--muted)",
           }}
         >
-          <p>Powered by Monad — Immutable. Trustless. Instant.</p>
+          <p>Powered by Stellar Testnet - Public, verifiable and transparent.</p>
           <p style={{ marginTop: "8px" }}>payproof.xyz</p>
         </div>
       </div>
