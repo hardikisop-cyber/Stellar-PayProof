@@ -200,7 +200,9 @@ export default function PayProofApp() {
         </div>
         <div className="header-right">
           {connected ? (
-            <div className="wallet-badge">Connected: {shortAddress(walletAddress)}</div>
+            <div className="wallet-badge">
+              Connected: {shortAddress(walletAddress)}
+            </div>
           ) : (
             <button className="btn" onClick={connectWallet}>
               Connect Freighter
@@ -294,7 +296,9 @@ export default function PayProofApp() {
 
           {payments.length > 0 && (
             <div style={{ marginTop: "24px" }}>
-              <h3 style={{ marginBottom: "12px" }}>Incoming History for Recipient</h3>
+              <h3 style={{ marginBottom: "12px" }}>
+                Incoming History for Recipient
+              </h3>
               <table className="table">
                 <thead>
                   <tr>
@@ -337,7 +341,13 @@ export default function PayProofApp() {
         <div className="grid-2">
           <div className="card">
             <h2 style={{ marginBottom: "20px" }}>Batch Payroll</h2>
-            <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "16px" }}>
+            <p
+              style={{
+                fontSize: "12px",
+                color: "var(--muted)",
+                marginBottom: "16px",
+              }}
+            >
               Submit one Stellar transaction with multiple payment operations.
               Each line below must be a funded Stellar testnet account.
             </p>
@@ -386,7 +396,10 @@ export default function PayProofApp() {
             </button>
 
             {batchStatus && (
-              <div className={`status-message status-${batchStatusType}`} style={{ marginTop: "16px" }}>
+              <div
+                className={`status-message status-${batchStatusType}`}
+                style={{ marginTop: "16px" }}
+              >
                 {batchStatus}
               </div>
             )}
@@ -397,24 +410,29 @@ export default function PayProofApp() {
             <div className="summary-box">
               <div className="summary-item">
                 <div className="summary-item-label">Recipients</div>
-                <div className="summary-item-value">{parsedBatchAddresses.length}</div>
+                <div className="summary-item-value">
+                  {parsedBatchAddresses.length}
+                </div>
               </div>
               <div className="summary-item">
                 <div className="summary-item-label">Amount Each</div>
-                <div className="summary-item-value">{batchAmount || "0"} XLM</div>
+                <div className="summary-item-value">
+                  {batchAmount || "0"} XLM
+                </div>
               </div>
             </div>
 
             {batchResult ? (
               <div>
                 <p style={{ fontSize: "13px", marginBottom: "10px" }}>
-                  Batch confirmed in {(batchResult.elapsedMs / 1000).toFixed(2)}s.
+                  Batch confirmed in {(batchResult.elapsedMs / 1000).toFixed(2)}
+                  s.
                 </p>
                 <p style={{ fontSize: "13px", marginBottom: "10px" }}>
                   Total sent: {batchResult.total} XLM
                 </p>
                 <p style={{ fontSize: "13px", marginBottom: "10px" }}>
-                  Ledger: {" "}
+                  Ledger:{" "}
                   <a
                     href={ledgerExplorerUrl(batchResult.ledger)}
                     target="_blank"
@@ -425,7 +443,7 @@ export default function PayProofApp() {
                   </a>
                 </p>
                 <p style={{ fontSize: "13px" }}>
-                  Transaction: {" "}
+                  Transaction:{" "}
                   <a
                     href={txExplorerUrl(batchResult.hash)}
                     target="_blank"

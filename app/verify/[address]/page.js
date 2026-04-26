@@ -74,7 +74,10 @@ export default function VerifyPage() {
   if (loading) {
     return (
       <div className="container">
-        <div className="card" style={{ textAlign: "center", marginTop: "40px" }}>
+        <div
+          className="card"
+          style={{ textAlign: "center", marginTop: "40px" }}
+        >
           <p>Loading Stellar payment proof...</p>
         </div>
       </div>
@@ -85,7 +88,9 @@ export default function VerifyPage() {
     return (
       <div className="container">
         <div className="card" style={{ marginTop: "40px" }}>
-          <div style={{ textAlign: "center", padding: "40px", color: "#ff6b6b" }}>
+          <div
+            style={{ textAlign: "center", padding: "40px", color: "#ff6b6b" }}
+          >
             <h2 style={{ marginBottom: "16px" }}>Verification Not Found</h2>
             <p>{error}</p>
           </div>
@@ -104,10 +109,19 @@ export default function VerifyPage() {
 
       <div className="card">
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <div className="badge badge-green" style={{ fontSize: "18px", padding: "8px 16px" }}>
+          <div
+            className="badge badge-green"
+            style={{ fontSize: "18px", padding: "8px 16px" }}
+          >
             Verified on Stellar Testnet
           </div>
-          <p style={{ marginTop: "16px", fontSize: "14px", color: "var(--muted)" }}>
+          <p
+            style={{
+              marginTop: "16px",
+              fontSize: "14px",
+              color: "var(--muted)",
+            }}
+          >
             This income proof is verifiable using public Stellar ledger data.
           </p>
         </div>
@@ -121,7 +135,13 @@ export default function VerifyPage() {
             marginBottom: "24px",
           }}
         >
-          <p style={{ fontSize: "11px", color: "var(--muted)", marginBottom: "6px" }}>
+          <p
+            style={{
+              fontSize: "11px",
+              color: "var(--muted)",
+              marginBottom: "6px",
+            }}
+          >
             Verified Wallet Address
           </p>
           <p
@@ -135,7 +155,12 @@ export default function VerifyPage() {
           >
             {address}
           </p>
-          <a href={accountExplorerUrl(address)} target="_blank" rel="noopener noreferrer" className="link">
+          <a
+            href={accountExplorerUrl(address)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="link"
+          >
             Open Account in Explorer
           </a>
         </div>
@@ -144,7 +169,9 @@ export default function VerifyPage() {
           <div className="summary-box">
             <div className="summary-item">
               <div className="summary-item-label">Total Received</div>
-              <div className="summary-item-value">{summary.totalAmountXlm} XLM</div>
+              <div className="summary-item-value">
+                {summary.totalAmountXlm} XLM
+              </div>
             </div>
             <div className="summary-item">
               <div className="summary-item-label">Payment Count</div>
@@ -165,7 +192,9 @@ export default function VerifyPage() {
           </div>
         )}
 
-        <h3 style={{ marginTop: "32px", marginBottom: "16px" }}>Incoming Payments</h3>
+        <h3 style={{ marginTop: "32px", marginBottom: "16px" }}>
+          Incoming Payments
+        </h3>
         <table className="table">
           <thead>
             <tr>
@@ -218,7 +247,9 @@ export default function VerifyPage() {
             color: "var(--muted)",
           }}
         >
-          <p>Powered by Stellar Testnet - Public, verifiable and transparent.</p>
+          <p>
+            Powered by Stellar Testnet - Public, verifiable and transparent.
+          </p>
           <p style={{ marginTop: "8px" }}>payproof.xyz</p>
         </div>
       </div>
