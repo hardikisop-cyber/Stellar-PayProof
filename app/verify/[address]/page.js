@@ -10,7 +10,9 @@ import {
   isValidStellarAddress,
   ledgerExplorerUrl,
   shortAddress,
+  fetchEmployerReputations,
 } from "@/lib/stellar";
+import { getReputationBadge } from "@/lib/soroban";
 
 export default function VerifyPage() {
   const params = useParams();
@@ -20,6 +22,7 @@ export default function VerifyPage() {
   const [history, setHistory] = useState([]);
   const [summary, setSummary] = useState(null);
   const [error, setError] = useState("");
+  const [reputations, setReputations] = useState({});
 
   useEffect(() => {
     const loadData = async () => {
@@ -37,6 +40,14 @@ export default function VerifyPage() {
 
         setHistory(paymentHistory);
         setSummary(buildPaymentSummary(paymentHistory));
+
+        // Fetch employer reputations
+        try {
+          const reps = await fetchEmployerReputations(paymentHistory);
+          setReputations(reps);
+        } catch (repError) {
+          console.warn("Failed to fetch reputations:", repError);
+        }
       } catch (loadError) {
         setError(loadError.message || "Failed to load payment history");
       } finally {
@@ -201,31 +212,45 @@ export default function VerifyPage() {
               <th>Date</th>
               <th>Amount (XLM)</th>
               <th>From</th>
+              <th>Employer Reputation</th>
               <th>Ledger</th>
               <th>Memo</th>
             </tr>
           </thead>
           <tbody>
-            {history.map((payment, index) => (
-              <tr key={`${payment.hash}-${index}`}>
-                <td>{new Date(payment.timestampMs).toLocaleString()}</td>
-                <td>{payment.amountXlm.toFixed(7)}</td>
-                <td>{shortAddress(payment.from)}</td>
-                <td>
-                  <a
-                    href={ledgerExplorerUrl(payment.ledger)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="link"
-                  >
-                    {payment.ledger}
-                  </a>
-                </td>
-                <td style={{ fontSize: "12px", color: "var(--muted)" }}>
-                  {payment.note || "-"}
-                </td>
-              </tr>
-            ))}
+            {history.map((payment, index) => {
+              const rep = reputations[payment.from] || {};
+              return (
+                <tr key={`${payment.hash}-${index}`}>
+                  <td>{new Date(payment.timestampMs).toLocaleString()}</td>
+                  <td>{payment.amountXlm.toFixed(7)}</td>
+                  <td>{shortAddress(payment.from)}</td>
+                  <td>
+                    <div style={{ fontSize: "12px" }}>
+                      <div>{getReputationBadge(rep.score || 0)}</div>
+                      {rep.score > 0 && (
+                        <div style={{ marginTop: "4px", color: "var(--muted)" }}>
+                          Score: {rep.score}/100
+                        </div>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <a
+                      href={ledgerExplorerUrl(payment.ledger)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="link"
+                    >
+                      {payment.ledger}
+                    </a>
+                  </td>
+                  <td style={{ fontSize: "12px", color: "var(--muted)" }}>
+                    {payment.note || "-"}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
 

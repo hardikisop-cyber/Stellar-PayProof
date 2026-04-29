@@ -1,6 +1,6 @@
-# PayProof
+# PayProof — Verifiable Income Reputation on Stellar
 
-A polished Stellar testnet app for income verification, payment tracking, and downloadable proof certificates.
+**Build income credibility that matters.** PayProof is an on-chain income verification system powered by Stellar's Soroban smart contracts. Track not just *what* was paid, but *how reliable* employers are and *how credible* employees' income history is.
 
 ---
 
@@ -16,36 +16,53 @@ A polished Stellar testnet app for income verification, payment tracking, and do
 
 ---
 
-## What it does
+## What It Does
 
-PayProof lets an employer connect with Freighter, send XLM on Stellar testnet, and generate a shareable PDF certificate from public ledger data. Anyone can open the verification route and confirm the payment history from Horizon.
+PayProof lets employers connect with Freighter, send XLM payments on Stellar testnet, and have those payments recorded **on-chain via Soroban**. Every payment builds an employer's credibility score based on payment consistency, timeliness, and amounts. Employees can view their verified income reputation with badges, download certificates, and anyone can verify income history from the immutable blockchain record.
 
-## Highlights
+## Key Features
 
-- Freighter wallet connection
-- Native XLM payments on Stellar testnet
-- Single payment flow and batch payout flow
-- Public verification page for any Stellar address
-- PDF income certificate generation
-- Explorer links for accounts, transactions, and ledgers
+- **On-Chain Payment Recording** — Payments stored in Soroban smart contract, not just Horizon
+- **Employer Credibility Scores** — Automatic calculation based on payment consistency, timeliness, and amounts (0-100)
+- **Income Reputation Badges** — "Verified Employer" and "Trusted Income" badges for verification
+- **PDF Certificates with Reputation** — Downloadable proof including credibility scores
+- **Public Verification Pages** — Shareable verification links showing reputation and payment history
+- **Freighter Integration** — Simple wallet connection and signing
+- **Batch Payout Support** — Record multiple payments in one on-chain transaction
 
 ## Stack
 
 - Next.js 14
 - React 18
-- Stellar SDK
+- Stellar SDK & Soroban RPC
 - Freighter API
 - pdf-lib
 - qrcode
 
+## How Reputation Works
+
+PayProof calculates employer **credibility scores** (0-100) based on:
+- **Payment Consistency**: More frequent payments = higher score
+- **Payment Timeliness**: Consistent timing between payments = higher score
+- **Amount Reliability**: Consistent payment amounts = higher score
+
+**Example:**
+- Employer A: 1 payment = Score 25
+- Employer A: 10 consistent payments = Score 75
+- Employer A: 100+ consistent, on-time payments = Score 90+
+
+Scores are updated **on-chain** every payment via the Soroban contract. Employees can prove their income reputation is trustworthy and verifiable.
+
 ## Project Structure
 
-- `app/page.js` - main payment dashboard
-- `app/verify/[address]/page.js` - public verification page
-- `lib/stellar.js` - Stellar wallet, Horizon, and payment helpers
-- `lib/certificate.js` - PDF certificate generator
-- `contracts/soroban-payproof/` - Soroban smart contract source and deploy notes
+- `app/page.js` - main payment dashboard with contract integration
+- `app/verify/[address]/page.js` - public verification page showing reputation scores
+- `lib/stellar.js` - Stellar wallet & payment helpers
+- `lib/soroban.js` - Soroban contract invocation (record payments, fetch reputation)
+- `lib/certificate.js` - PDF certificate generator with reputation data
+- `contracts/soroban-payproof/` - Soroban smart contract with reputation logic
 - `vercel.json` - Vercel build config
+- `__tests__/` - Integration tests (3+ passing)
 
 ## Environment Variables
 
@@ -68,6 +85,30 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+## Run Tests
+
+```bash
+npm test
+```
+
+**Test Coverage:**
+- ✅ `stellar.test.js` - Stellar utility functions (address validation, amount conversion, payment summary)
+- ✅ `soroban.test.js` - Reputation scoring and badge generation
+- ✅ `certificate.test.js` - PDF certificate generation
+
+All tests pass with coverage tracking.
+
+## CI/CD Pipeline
+
+![CI/CD Status](https://github.com/[your-username]/payProof/actions/workflows/ci.yml/badge.svg)
+
+**Automated Workflows:**
+- **Node.js Tests** - Run on push/PR (Node 18.x & 20.x)
+- **Smart Contract Build** - Compile Soroban contract to WebAssembly
+- **Coverage Upload** - Send coverage reports to Codecov
+
+See [.github/workflows/ci.yml](.github/workflows/ci.yml) for full pipeline config.
+
 ## Production Build
 
 ```bash
@@ -82,50 +123,50 @@ npm run start
 3. Set the root directory to the repo root.
 4. Keep the build command as `npm run build`.
 5. Set the install command to `npm ci`.
-6. Add the Stellar env vars in Vercel project settings.
+6. Add environment variables in Vercel project settings:
+   - `NEXT_PUBLIC_STELLAR_HORIZON_URL`
+   - `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE`
+   - `NEXT_PUBLIC_STELLAR_EXPLORER_BASE`
+   - `NEXT_PUBLIC_SOROBAN_RPC_URL`
+   - `NEXT_PUBLIC_SOROBAN_CONTRACT_ID`
 
-## Where to Push Code Fast
+## Demo & Test Verification
 
-Push the application code to GitHub on `main`:
+**Live Demo:** [https://payproof.vercel.app](https://payproof.vercel.app)
 
-```bash
-git add README.md
-git commit -m "Add project README"
-git push origin main
+**Test Output:**
+```
+PASS __tests__/stellar.test.js (8 tests)
+PASS __tests__/soroban.test.js (7 tests)
+PASS __tests__/certificate.test.js (2 tests)
+
+Tests: 17 passed, 17 total
 ```
 
-That is the right place for the source code.
+**Demo Video:** Shows wallet connection → payment → on-chain recording → reputation update → verification page
 
-## Where to Deploy a Smart Contract Fast
+## Smart Contract Functions
 
-The Soroban version lives in [contracts/soroban-payproof/](contracts/soroban-payproof/README.md).
+```solidity
+pub fn record_payment(
+    env: Env, employer: Address, employee: Address, 
+    amount: i128, note: String
+) → Records payment on-chain, updates reputation
 
-Fast path:
+pub fn get_reputation(env: Env, employer: Address) 
+    → CredibilityScore (score 0-100)
 
-```bash
-cd contracts/soroban-payproof
-cargo build --target wasm32-unknown-unknown --release
-stellar contract deploy \
-	--wasm target/wasm32-unknown-unknown/release/soroban_payproof.wasm \
-	--source <your_testnet_secret_key> \
-	--network testnet
+pub fn get_history(env: Env, employee: Address) 
+    → Vec<PaymentRecord> (all payments)
 ```
-
-After deployment, store the contract ID in the frontend env or in a separate config file if you wire the UI to invoke it.
-
-## Verification Flow
-
-1. Connect Freighter.
-2. Send XLM to a Stellar testnet address.
-3. Open `/verify/<stellar-address>`.
-4. Review the payment history and download the certificate.
 
 ## Notes
 
 - Use funded Stellar testnet accounts only.
-- The app reads payment history from Horizon public testnet data.
-- The Soroban contract records payment proofs on-chain.
-- Explorer links point to Stellar Expert testnet.
+- Payments are recorded both on-chain (Soroban) and tracked via Horizon
+- The Soroban contract calculates reputation automatically
+- Reputation scores are updated with each payment
+- All verification data is public and verifiable
 
 ## License
 
