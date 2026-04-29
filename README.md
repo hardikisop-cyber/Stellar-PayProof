@@ -2,6 +2,20 @@
 
 A polished Stellar testnet app for income verification, payment tracking, and downloadable proof certificates.
 
+---
+
+## 🚀 Live on Stellar Testnet
+
+**Soroban Smart Contract Deployed**
+
+```
+📜 Contract Address: CBHKP7TKYASAUTDJXQCBOWW56EPDX2MRMPEXWNCY2VDZUMNS27BVMZBA
+```
+
+🔗 [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CBHKP7TKYASAUTDJXQCBOWW56EPDX2MRMPEXWNCY2VDZUMNS27BVMZBA)
+
+---
+
 ## What it does
 
 PayProof lets an employer connect with Freighter, send XLM on Stellar testnet, and generate a shareable PDF certificate from public ledger data. Anyone can open the verification route and confirm the payment history from Horizon.

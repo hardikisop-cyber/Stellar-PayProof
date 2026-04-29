@@ -10,7 +10,7 @@ export CARGO_HOME="${CARGO_HOME:-$HOME/.cargo}"
 export PATH="$CARGO_HOME/bin:$PATH"
 
 SECRET_KEY="SCZTULPTD5HXQFCWBJN7KM4LIXB6KUW5OJX6UOE3E2NI6EMBFQ3CVA4G"
-WASM_PATH="contracts/soroban-payproof/target/wasm32-unknown-unknown/release/soroban_payproof.wasm"
+WASM_PATH="contracts/soroban-payproof/target/wasm32v1-none/release/soroban_payproof.wasm"
 ENV_FILE=".env"
 
 if ! command -v soroban >/dev/null 2>&1; then
@@ -19,7 +19,7 @@ if ! command -v soroban >/dev/null 2>&1; then
 fi
 
 echo "📦 Installing wasm32 target..."
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 
 echo "🔨 Building Soroban contract..."
 cd contracts/soroban-payproof
@@ -27,13 +27,17 @@ soroban contract build
 cd ../..
 
 echo "🚀 Deploying to Stellar testnet..."
-CONTRACT_ID=$(stellar contract deploy \
+DEPLOY_OUTPUT=$(stellar contract deploy \
   --wasm "$WASM_PATH" \
   --source "$SECRET_KEY" \
-  --network testnet | grep -oP '(?<=Contract ID: )[^ ]+' || stellar contract deploy \
-  --wasm "$WASM_PATH" \
-  --source "$SECRET_KEY" \
-  --network testnet | tail -1)
+  --network testnet 2>&1)
+printf '%s\n' "$DEPLOY_OUTPUT"
+
+CONTRACT_ID=$(printf '%s\n' "$DEPLOY_OUTPUT" | grep -oE 'C[A-Z2-7]{55}' | tail -1)
+if [ -z "$CONTRACT_ID" ]; then
+  echo "❌ Failed to parse contract ID from deploy output"
+  exit 1
+fi
 
 echo "✅ Deployed contract ID: $CONTRACT_ID"
 
