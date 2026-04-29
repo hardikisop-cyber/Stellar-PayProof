@@ -30,6 +30,7 @@ PayProof lets an employer connect with Freighter, send XLM on Stellar testnet, a
 - `app/verify/[address]/page.js` - public verification page
 - `lib/stellar.js` - Stellar wallet, Horizon, and payment helpers
 - `lib/certificate.js` - PDF certificate generator
+- `contracts/soroban-payproof/` - Soroban smart contract source and deploy notes
 - `vercel.json` - Vercel build config
 
 ## Environment Variables
@@ -40,6 +41,8 @@ Create a `.env` file from `.env.example`:
 NEXT_PUBLIC_STELLAR_HORIZON_URL=https://horizon-testnet.stellar.org
 NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE=Test SDF Network ; September 2015
 NEXT_PUBLIC_STELLAR_EXPLORER_BASE=https://stellar.expert/explorer/testnet
+NEXT_PUBLIC_SOROBAN_RPC_URL=https://soroban-testnet.stellar.org
+NEXT_PUBLIC_SOROBAN_CONTRACT_ID=your_soroban_contract_id_here
 ```
 
 ## Run Locally
@@ -81,9 +84,20 @@ That is the right place for the source code.
 
 ## Where to Deploy a Smart Contract Fast
 
-This version of PayProof does not use a Solidity smart contract anymore. Payments are native Stellar testnet transactions, so there is no contract to deploy inside this repo.
+The Soroban version lives in [contracts/soroban-payproof/](contracts/soroban-payproof/README.md).
 
-If you want an on-chain contract, deploy a Soroban contract to Stellar testnet from a separate Soroban project, then store the deployed contract ID in that project’s env config. The frontend would need to be wired to that contract separately.
+Fast path:
+
+```bash
+cd contracts/soroban-payproof
+cargo build --target wasm32-unknown-unknown --release
+stellar contract deploy \
+	--wasm target/wasm32-unknown-unknown/release/soroban_payproof.wasm \
+	--source <your_testnet_secret_key> \
+	--network testnet
+```
+
+After deployment, store the contract ID in the frontend env or in a separate config file if you wire the UI to invoke it.
 
 ## Verification Flow
 
@@ -96,6 +110,7 @@ If you want an on-chain contract, deploy a Soroban contract to Stellar testnet f
 
 - Use funded Stellar testnet accounts only.
 - The app reads payment history from Horizon public testnet data.
+- The Soroban contract records payment proofs on-chain.
 - Explorer links point to Stellar Expert testnet.
 
 ## License
