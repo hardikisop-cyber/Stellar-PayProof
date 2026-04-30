@@ -9,16 +9,20 @@ Your project was flagged as "too common" — just basic payment verification. We
 ## ✅ What Was Delivered
 
 ### 1. **Unique Positioning (Addressed the Feedback)**
+
 **Problem:** Idea was too common (just payment tracking)  
 **Solution:** Repositioned as **Income Reputation System**
+
 - Not just: "Show me all payments I received"
 - Now: "Show me my employer credibility score + income reputation badges"
 - Difference: Employers build trustworthiness through consistent, timely payments
 - Uniqueness: On-chain reputation calculation that's immutable and verifiable
 
 ### 2. **Smart Contract Enhancement**
+
 **Before:** Contract existed but was never actually used
 **After:** Full integration with reputation scoring
+
 ```rust
 // New CredibilityScore struct
 pub struct CredibilityScore {
@@ -37,22 +41,27 @@ pub struct CredibilityScore {
 ```
 
 ### 3. **Full Frontend Integration**
+
 **lib/soroban.js** (NEW)
+
 - `recordPaymentOnChain()` - Invoke contract to record payment
 - `getEmployerReputation()` - Fetch reputation scores from contract
 - `getReputationBadge()` - Display employer credibility tiers
 
 **lib/stellar.js** (UPDATED)
+
 - Modified `sendSinglePayment()` & `sendBatchPayment()` to also call contract
 - New `fetchEmployerReputations()` - Get scores for all employers
 - New `getFullVerificationData()` - Complete verification with reputation
 
 **app/verify/[address]/page.js** (UPDATED)
+
 - Display employer reputation badges in payment history table
 - Show credibility scores (Elite 90+, Verified 75+, Trusted 50+, etc.)
 - Reputation is now the primary insight, not just payment history
 
 ### 4. **Comprehensive Testing (17 Tests)**
+
 ```
 PASS __tests__/stellar.test.js (8 tests)
   ✓ Address validation
@@ -74,14 +83,18 @@ Tests: 17 passed, 17 total
 ```
 
 ### 5. **CI/CD Pipeline (.github/workflows/ci.yml)**
+
 **Automated on every push:**
+
 - Run tests on Node 18.x & 20.x
 - Build smart contract (Rust → WebAssembly)
 - Build Next.js frontend
 - Upload coverage reports
 
 ### 6. **Complete Level 3 Documentation**
+
 README includes:
+
 - ✅ Live demo link placeholder
 - ✅ Test output screenshot (17/17 passing)
 - ✅ Demo video link placeholder
@@ -107,20 +120,21 @@ README includes:
 
 ## 🔑 Key Innovation: Why This Is No Longer "Common"
 
-| Aspect | Before (Common) | After (Unique) |
-|--------|-----------------|----------------|
-| **Focus** | Show payment history | Build employer credibility scores |
-| **Data** | Just transactions from blockchain | Add reputation algorithm layer |
-| **Use Case** | Freelancer portfolio | Employer vetting + income verification |
-| **Smart Contract** | Deployed but unused | Actively records & calculates reputation |
-| **On-Chain Value** | None (just used Horizon) | Reputation data is on-chain, verifiable, permanent |
-| **User Benefit** | Can prove they got paid | Employers prove they pay reliably |
+| Aspect             | Before (Common)                   | After (Unique)                                     |
+| ------------------ | --------------------------------- | -------------------------------------------------- |
+| **Focus**          | Show payment history              | Build employer credibility scores                  |
+| **Data**           | Just transactions from blockchain | Add reputation algorithm layer                     |
+| **Use Case**       | Freelancer portfolio              | Employer vetting + income verification             |
+| **Smart Contract** | Deployed but unused               | Actively records & calculates reputation           |
+| **On-Chain Value** | None (just used Horizon)          | Reputation data is on-chain, verifiable, permanent |
+| **User Benefit**   | Can prove they got paid           | Employers prove they pay reliably                  |
 
 ---
 
 ## 🚀 How to Complete Level 3 Submission
 
 ### 1. Deploy Smart Contract (if not already)
+
 ```bash
 cd contracts/soroban-payproof
 cargo build --target wasm32-unknown-unknown --release
@@ -130,12 +144,15 @@ stellar contract deploy \
   --source <TESTNET_SECRET_KEY> \
   --network testnet
 ```
+
 Copy the contract address and set in `.env`:
+
 ```
 NEXT_PUBLIC_SOROBAN_CONTRACT_ID=<your_contract_id>
 ```
 
 ### 2. Test Locally
+
 ```bash
 npm run dev
 # Go to http://localhost:3000
@@ -143,6 +160,7 @@ npm run dev
 ```
 
 ### 3. Deploy to Vercel
+
 ```bash
 git push origin main
 # Vercel auto-deploys on push
@@ -150,6 +168,7 @@ git push origin main
 ```
 
 ### 4. Record Demo Video (1-minute)
+
 - Screen record showing:
   1. Connect Freighter wallet
   2. Send XLM payment with memo
@@ -159,6 +178,7 @@ git push origin main
   6. Download PDF certificate with reputation data
 
 ### 5. Submit
+
 - ✅ GitHub repository link: https://github.com/hardikisop-cyber/Stellar-PayProof
 - ✅ Live demo link: [your-vercel-url]
 - ✅ Test output screenshot: `npm test` output (17/17 passing)
@@ -170,12 +190,14 @@ git push origin main
 ## 📊 What Sets This Apart
 
 ### Unique to Stellar
+
 - Uses **Soroban smart contracts** for on-chain reputation (not just Horizon API)
 - **Atomic payment recording** - Every payment updates reputation instantly
 - **Verifiable on-chain** - Anyone can check contract state via Stellar Expert
 - **Trustless verification** - Reputation can't be faked; it's backed by blockchain
 
 ### Technical Excellence
+
 - Modern React + Next.js 14
 - Proper testing (Jest + 17 tests)
 - CI/CD pipeline automated
@@ -197,12 +219,14 @@ git push origin main
 ## 🔮 Road to Level 4+ (Not Yet Started)
 
 **Level 4 (Green Belt) - Next Steps:**
+
 1. Mobile responsive design (Tailwind CSS refactor)
 2. Inter-contract calls (second contract reads reputation from main contract)
 3. Expand CI/CD (add staging environment)
 4. More commits (need 8+ total)
 
 **Level 5 (Red Belt) - Future Vision:**
+
 - Reputation marketplace (buy/sell based on credibility scores)
 - Multi-skill tracking (different reputation contracts per skill)
 - Governance token for dispute resolution
@@ -213,6 +237,7 @@ git push origin main
 ## 📁 Files Modified/Created
 
 **New Files:**
+
 - `lib/soroban.js` - Contract integration module
 - `__tests__/stellar.test.js` - Unit tests
 - `__tests__/soroban.test.js` - Reputation tests
@@ -223,6 +248,7 @@ git push origin main
 - `.github/workflows/ci.yml` - CI/CD pipeline
 
 **Modified Files:**
+
 - `README.md` - Complete rewrite with reputation focus
 - `package.json` - Added test scripts and dev dependencies
 - `lib/stellar.js` - Added contract invocation logic
@@ -234,6 +260,7 @@ git push origin main
 ## 🎯 Bottom Line
 
 You now have a **production-ready, unique Stellar project** that:
+
 1. ✅ Solves a real problem (verifying employer trustworthiness)
 2. ✅ Leverages Stellar's unique capabilities (on-chain smart contracts)
 3. ✅ Has complete infrastructure (tests, CI/CD, documentation)

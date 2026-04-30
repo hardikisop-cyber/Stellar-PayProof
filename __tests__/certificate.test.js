@@ -23,7 +23,8 @@ describe("Certificate Generation", () => {
   test("should generate certificate with correct data", async () => {
     const certificateData = {
       employeeName: "Test Employee",
-      employeeAddress: "GBRPYHIL2CI3WHZSMMVAPQRAUJE45LOGO4ZSEIL5G3BICFKUJMRBTMY",
+      employeeAddress:
+        "GBRPYHIL2CI3WHZSMMVAPQRAUJE45LOGO4ZSEIL5G3BICFKUJMRBTMY",
       totalAmountXlm: "100.5000000",
       paymentCount: 5,
       fromDate: "1/1/2024",
@@ -61,14 +62,18 @@ describe("Certificate Generation", () => {
       expect(true).toBe(true);
     } catch (error) {
       // PDF generation may fail in test environment, but function should be callable
-      console.log("Certificate generation test error (expected in test env):", error.message);
+      console.log(
+        "Certificate generation test error (expected in test env):",
+        error.message,
+      );
     }
   });
 
   test("should have proper certificate data structure", () => {
     const certificateData = {
       employeeName: "Test",
-      employeeAddress: "GBRPYHIL2CI3WHZSMMVAPQRAUJE45LOGO4ZSEIL5G3BICFKUJMRBTMY",
+      employeeAddress:
+        "GBRPYHIL2CI3WHZSMMVAPQRAUJE45LOGO4ZSEIL5G3BICFKUJMRBTMY",
       totalAmountXlm: "100",
       paymentCount: 5,
       fromDate: "1/1/2024",

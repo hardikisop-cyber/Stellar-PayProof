@@ -196,7 +196,13 @@ export default function VerifyPage() {
             <h3 style={{ marginTop: "6px" }}>
               Verification beyond a payment list
             </h3>
-            <p style={{ marginTop: "8px", color: "var(--muted)", fontSize: "13px" }}>
+            <p
+              style={{
+                marginTop: "8px",
+                color: "var(--muted)",
+                fontSize: "13px",
+              }}
+            >
               PayProof turns ledger history into a reputation profile that is
               easier to understand and harder to fake.
             </p>
@@ -275,7 +281,9 @@ export default function VerifyPage() {
                       <div style={{ fontSize: "12px" }}>
                         <div>{getReputationBadge(rep.score || 0)}</div>
                         {rep.score > 0 && (
-                          <div style={{ marginTop: "4px", color: "var(--muted)" }}>
+                          <div
+                            style={{ marginTop: "4px", color: "var(--muted)" }}
+                          >
                             Score: {rep.score}/100
                           </div>
                         )}

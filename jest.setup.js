@@ -3,7 +3,11 @@ import "@testing-library/jest-dom";
 // Mock Freighter API
 jest.mock("@stellar/freighter-api", () => ({
   requestAccess: jest.fn().mockResolvedValue({ address: "test-wallet" }),
-  getAddress: jest.fn().mockResolvedValue("GBRPYHIL2CI3WHZSMMVAPQRAUJE45LOGO4ZSEIL5G3BICFKUJMRBTMY"),
+  getAddress: jest
+    .fn()
+    .mockResolvedValue(
+      "GBRPYHIL2CI3WHZSMMVAPQRAUJE45LOGO4ZSEIL5G3BICFKUJMRBTMY",
+    ),
   signTransaction: jest.fn().mockResolvedValue({
     signedTxXdr: "test-xdr",
   }),

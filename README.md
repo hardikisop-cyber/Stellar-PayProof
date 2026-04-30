@@ -1,6 +1,6 @@
 # PayProof — Verifiable Income Reputation on Stellar
 
-**Build income credibility that matters.** PayProof is an on-chain income verification system powered by Stellar's Soroban smart contracts. Track not just *what* was paid, but *how reliable* employers are and *how credible* employees' income history is.
+**Build income credibility that matters.** PayProof is an on-chain income verification system powered by Stellar's Soroban smart contracts. Track not just _what_ was paid, but _how reliable_ employers are and _how credible_ employees' income history is.
 
 ---
 
@@ -44,11 +44,13 @@ PayProof lets employers connect with Freighter, send XLM payments on Stellar tes
 ## How Reputation Works
 
 PayProof calculates employer **credibility scores** (0-100) based on:
+
 - **Payment Consistency**: More frequent payments = higher score
 - **Payment Timeliness**: Consistent timing between payments = higher score
 - **Amount Reliability**: Consistent payment amounts = higher score
 
 **Example:**
+
 - Employer A: 1 payment = Score 25
 - Employer A: 10 consistent payments = Score 75
 - Employer A: 100+ consistent, on-time payments = Score 90+
@@ -94,6 +96,7 @@ npm test
 ```
 
 **Test Coverage:**
+
 - ✅ `stellar.test.js` - Stellar utility functions (address validation, amount conversion, payment summary)
 - ✅ `soroban.test.js` - Reputation scoring and badge generation
 - ✅ `certificate.test.js` - PDF certificate generation
@@ -105,6 +108,7 @@ All tests pass with coverage tracking.
 ![CI/CD Status](https://github.com/[your-username]/payProof/actions/workflows/ci.yml/badge.svg)
 
 **Automated Workflows:**
+
 - **Node.js Tests** - Run on push/PR (Node 18.x & 20.x)
 - **Smart Contract Build** - Compile Soroban contract to WebAssembly
 - **Coverage Upload** - Send coverage reports to Codecov
@@ -137,6 +141,7 @@ npm run start
 **Live Demo:** [https://payproof.vercel.app](https://payproof.vercel.app)
 
 **Test Output:**
+
 ```
 PASS __tests__/stellar.test.js (8 tests)
 PASS __tests__/soroban.test.js (7 tests)
@@ -153,14 +158,14 @@ Tests: 17 passed, 17 total
 
 ```solidity
 pub fn record_payment(
-    env: Env, employer: Address, employee: Address, 
+    env: Env, employer: Address, employee: Address,
     amount: i128, note: String
 ) → Records payment on-chain, updates reputation
 
-pub fn get_reputation(env: Env, employer: Address) 
+pub fn get_reputation(env: Env, employer: Address)
     → CredibilityScore (score 0-100)
 
-pub fn get_history(env: Env, employee: Address) 
+pub fn get_history(env: Env, employee: Address)
     → Vec<PaymentRecord> (all payments)
 ```
 

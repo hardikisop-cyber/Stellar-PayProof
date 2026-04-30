@@ -10,7 +10,7 @@ describe("Stellar Utilities", () => {
     test("should validate Stellar address format", () => {
       // Test that the function exists and is callable
       expect(typeof isValidStellarAddress).toBe("function");
-      
+
       // Test with falsy values
       expect(isValidStellarAddress("")).toBe(false);
       expect(isValidStellarAddress(null)).toBe(false);

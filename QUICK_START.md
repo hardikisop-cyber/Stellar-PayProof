@@ -1,7 +1,9 @@
 # 🚀 Quick Start - PayProof Level 3 Submission
 
 ## What You Have
+
 A **production-ready, unique Stellar project** that transforms "common payment tracking" into a **verifiable income reputation system** with:
+
 - ✅ Smart contract with reputation scoring
 - ✅ 17 passing tests
 - ✅ CI/CD pipeline
@@ -13,6 +15,7 @@ A **production-ready, unique Stellar project** that transforms "common payment t
 ## Next 3 Steps to Submit Level 3
 
 ### Step 1: Deploy Smart Contract (15 min)
+
 ```bash
 cd contracts/soroban-payproof
 cargo build --target wasm32-unknown-unknown --release
@@ -24,11 +27,13 @@ stellar contract deploy \
 ```
 
 Copy the contract ID output and update `.env`:
+
 ```
 NEXT_PUBLIC_SOROBAN_CONTRACT_ID=C...YOUR_CONTRACT_ID...
 ```
 
 ### Step 2: Deploy to Vercel (5 min)
+
 ```bash
 # Push changes
 git add .env
@@ -42,6 +47,7 @@ git push origin main
 Get your live demo URL: `https://YOUR_PROJECT.vercel.app`
 
 Update README.md:
+
 ```markdown
 ## Demo & Test Verification
 
@@ -51,6 +57,7 @@ Update README.md:
 ### Step 3: Record 1-Minute Demo Video (10 min)
 
 **Screen record showing:**
+
 1. Open app → Connect Freighter wallet
 2. Send test payment (0.1 XLM) with memo "PayProof Demo"
 3. Wait for confirmation
@@ -60,6 +67,7 @@ Update README.md:
 7. Show Stellar Expert with payment confirmed on testnet
 
 **Upload to:**
+
 - YouTube Shorts
 - Loom
 - Any video hosting
@@ -108,14 +116,14 @@ npm run dev
 
 ## Key Files for Reviewers
 
-| File | What It Shows |
-|------|---------------|
-| `README.md` | Complete documentation + unique positioning |
-| `lib/soroban.js` | Smart contract integration |
-| `__tests__/` | 17 passing tests |
-| `.github/workflows/ci.yml` | CI/CD pipeline |
-| `LEVEL_3_IMPLEMENTATION.md` | Full implementation details |
-| `contracts/soroban-payproof/src/lib.rs` | Reputation calculation algorithm |
+| File                                    | What It Shows                               |
+| --------------------------------------- | ------------------------------------------- |
+| `README.md`                             | Complete documentation + unique positioning |
+| `lib/soroban.js`                        | Smart contract integration                  |
+| `__tests__/`                            | 17 passing tests                            |
+| `.github/workflows/ci.yml`              | CI/CD pipeline                              |
+| `LEVEL_3_IMPLEMENTATION.md`             | Full implementation details                 |
+| `contracts/soroban-payproof/src/lib.rs` | Reputation calculation algorithm            |
 
 ---
 
@@ -125,6 +133,7 @@ npm run dev
 ✅ **What PayProof Does:** "Here's your employer's credibility score based on reliable payments"
 
 **The Difference:**
+
 - Other projects just record transactions (common)
 - PayProof calculates reputation on-chain (unique)
 - Employers prove trustworthiness through actions (novel)

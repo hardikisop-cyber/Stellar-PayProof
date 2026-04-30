@@ -9,29 +9,29 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: [18.x, 20.x]
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      
+          cache: "npm"
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run tests
         run: npm test -- --coverage --watchAll=false
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -41,20 +41,20 @@ jobs:
 
   soroban-contract:
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Install Rust
         uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
           target: wasm32-unknown-unknown
           override: true
-      
+
       - name: Check smart contract formatting
         run: cd contracts/soroban-payproof && cargo fmt -- --check
         continue-on-error: true
-      
+
       - name: Build smart contract
         run: cd contracts/soroban-payproof && cargo build --target wasm32-unknown-unknown --release

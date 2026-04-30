@@ -239,7 +239,8 @@ export default function PayProofApp() {
           <div className="mini-card">
             <strong>Level 5 inter-contract</strong>
             <span>
-              Passport contract {passportConfigured ? "configured" : "not configured yet"}
+              Passport contract{" "}
+              {passportConfigured ? "configured" : "not configured yet"}
             </span>
           </div>
         </div>
@@ -347,7 +348,9 @@ export default function PayProofApp() {
                   <tbody>
                     {payments.slice(0, 20).map((payment, index) => (
                       <tr key={`${payment.hash}-${index}`}>
-                        <td>{new Date(payment.timestampMs).toLocaleString()}</td>
+                        <td>
+                          {new Date(payment.timestampMs).toLocaleString()}
+                        </td>
                         <td>{payment.amountXlm.toFixed(7)}</td>
                         <td>{shortAddress(payment.from)}</td>
                         <td>
@@ -497,12 +500,15 @@ export default function PayProofApp() {
             )}
 
             <div style={{ marginTop: "20px" }}>
-              <div className="badge badge-purple" style={{ marginBottom: "12px" }}>
+              <div
+                className="badge badge-purple"
+                style={{ marginBottom: "12px" }}
+              >
                 Level 5 concept: Income Passport
               </div>
               <p style={{ fontSize: "12px", color: "var(--muted)" }}>
-                Verified payments become a portable reputation profile instead of
-                just a transaction list.
+                Verified payments become a portable reputation profile instead
+                of just a transaction list.
               </p>
             </div>
           </div>
