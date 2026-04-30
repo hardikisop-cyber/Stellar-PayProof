@@ -55,20 +55,23 @@ jest.mock("stellar-sdk", () => {
         }),
       })),
     },
-    SorobanRpc: {
+    rpc: {
       Server: jest.fn().mockImplementation(() => ({
         getAccount: jest.fn().mockResolvedValue({
           sequence: "1",
+        }),
+        sendTransaction: jest.fn().mockResolvedValue({
+          hash: "rpc-tx-hash",
+          status: "SUCCESS",
+        }),
+        getTransaction: jest.fn().mockResolvedValue({
+          status: "SUCCESS",
         }),
         simulateTransaction: jest.fn().mockResolvedValue({
           results: [
             {
               result: {
-                retVal: {
-                  map: jest.fn().mockReturnValue({
-                    val: jest.fn().mockReturnValue([]),
-                  }),
-                },
+                retVal: null,
               },
             },
           ],

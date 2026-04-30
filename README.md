@@ -9,10 +9,10 @@
 **Soroban Smart Contract Deployed**
 
 ```
-📜 Contract Address: CBHKP7TKYASAUTDJXQCBOWW56EPDX2MRMPEXWNCY2VDZUMNS27BVMZBA
+📜 Contract Address: CAARNTLMY5FWPFKZRQHZY4NGRFRV6FF64QAZPMZ7PMUFHG5PC54MBB5P
 ```
 
-🔗 [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CBHKP7TKYASAUTDJXQCBOWW56EPDX2MRMPEXWNCY2VDZUMNS27BVMZBA)
+🔗 [View on Stellar Expert](https://stellar.expert/explorer/testnet/contract/CAARNTLMY5FWPFKZRQHZY4NGRFRV6FF64QAZPMZ7PMUFHG5PC54MBB5P)
 
 ---
 
@@ -164,13 +164,30 @@ pub fn get_history(env: Env, employee: Address)
     → Vec<PaymentRecord> (all payments)
 ```
 
+## Level 5: Inter-Contract Passport
+
+A second contract (`contracts/soroban-passport/`) is included for Level 5.
+It performs **inter-contract calls** to the main PayProof contract and computes an aggregate passport score from multiple employer reputations.
+
+Deploy it with:
+
+```bash
+cd /c/projects/payProof && bash ./scripts/deploy-passport.sh
+```
+
+After deployment, `.env` is updated with:
+
+```bash
+NEXT_PUBLIC_PASSPORT_CONTRACT_ID=<deployed_passport_contract_id>
+```
+
 ## Notes
 
 - Use funded Stellar testnet accounts only.
-- Payments are recorded both on-chain (Soroban) and tracked via Horizon
-- The Soroban contract calculates reputation automatically
-- Reputation scores are updated with each payment
-- All verification data is public and verifiable
+- Payments are recorded both on-chain (Soroban) and tracked via Horizon.
+- The Soroban contract calculates reputation automatically.
+- Level 5 contract adds inter-contract aggregation for passport scoring.
+- All verification data is public and verifiable.
 
 ## License
 

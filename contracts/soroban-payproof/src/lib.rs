@@ -63,7 +63,6 @@ fn save_history(env: &Env, employee: &Address, history: &Vec<PaymentRecord>) {
 fn calculate_reputation(
     payment_count: u32,
     time_span_seconds: u64,
-    total_amount: i128,
     avg_amount: i128,
 ) -> u32 {
     // Base score
@@ -112,10 +111,12 @@ fn append_record(env: &Env, employer: Address, employee: Address, amount: i128, 
     save_history(env, &employee, &history);
 
     // Update employer reputation score
-    let emp_history: Vec<PaymentRecord> = history
-        .iter()
-        .filter(|r| r.employer == employer)
-        .collect();
+    let mut emp_history = vec![env];
+    for payment in history.iter() {
+        if payment.employer == employer {
+            emp_history.push_back(payment);
+        }
+    }
 
     if !emp_history.is_empty() {
         let payment_count = emp_history.len() as u32;
@@ -132,7 +133,7 @@ fn append_record(env: &Env, employer: Address, employee: Address, amount: i128, 
         let total_amount: i128 = emp_history.iter().map(|r| r.amount).sum();
         let avg_amount = total_amount / (payment_count as i128);
 
-        let score = calculate_reputation(payment_count, time_span, total_amount, avg_amount);
+        let score = calculate_reputation(payment_count, time_span, avg_amount);
 
         let credibility = CredibilityScore {
             employer: employer.clone(),

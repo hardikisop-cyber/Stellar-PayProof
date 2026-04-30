@@ -22,6 +22,8 @@ function parseBatchAddresses(input) {
 }
 
 export default function PayProofApp() {
+  const passportConfigured = !!process.env.NEXT_PUBLIC_PASSPORT_CONTRACT_ID;
+
   const [activeTab, setActiveTab] = useState("single");
   const [connected, setConnected] = useState(false);
   const [walletAddress, setWalletAddress] = useState("");
@@ -233,6 +235,12 @@ export default function PayProofApp() {
           <div className="mini-card">
             <strong>Mobile-ready flow</strong>
             <span>Responsive cards, tabs, and tables</span>
+          </div>
+          <div className="mini-card">
+            <strong>Level 5 inter-contract</strong>
+            <span>
+              Passport contract {passportConfigured ? "configured" : "not configured yet"}
+            </span>
           </div>
         </div>
       </div>
