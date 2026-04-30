@@ -25,6 +25,8 @@ PayProof lets employers connect with Freighter, send XLM payments on Stellar tes
 - **On-Chain Payment Recording** — Payments stored in Soroban smart contract, not just Horizon
 - **Employer Credibility Scores** — Automatic calculation based on payment consistency, timeliness, and amounts (0-100)
 - **Income Reputation Badges** — "Verified Employer" and "Trusted Income" badges for verification
+- **Income Passport View** — Reputation summary that feels like a portable trust profile
+- **Mobile-First Layout** — Responsive hero, cards, and tables for Level 4 review
 - **PDF Certificates with Reputation** — Downloadable proof including credibility scores
 - **Public Verification Pages** — Shareable verification links showing reputation and payment history
 - **Freighter Integration** — Simple wallet connection and signing
@@ -144,6 +146,8 @@ Tests: 17 passed, 17 total
 ```
 
 **Demo Video:** Shows wallet connection → payment → on-chain recording → reputation update → verification page
+
+**Level 5 Direction:** Income Passport / employer trust graph built on Stellar reputation data.
 
 ## Smart Contract Functions
 

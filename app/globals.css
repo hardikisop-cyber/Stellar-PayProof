@@ -1,10 +1,13 @@
 :root {
   --purple: #6c47ff;
-  --dark: #0a0a0f;
-  --card: #13131a;
-  --border: #2a2a3a;
-  --text: #e0e0f0;
-  --muted: #888;
+  --purple-soft: rgba(108, 71, 255, 0.14);
+  --dark: #080812;
+  --card: rgba(17, 17, 26, 0.9);
+  --card-strong: #13131a;
+  --border: rgba(168, 160, 255, 0.18);
+  --text: #f3f3fb;
+  --muted: #a0a0b6;
+  --shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 }
 
 * {
@@ -14,23 +17,29 @@
 }
 
 body {
-  background-color: var(--dark);
+  background:
+    radial-gradient(circle at top left, rgba(108, 71, 255, 0.18), transparent 32%),
+    radial-gradient(circle at top right, rgba(0, 255, 193, 0.08), transparent 28%),
+    linear-gradient(180deg, #0a0a12 0%, #07070c 100%);
   color: var(--text);
   font-family: "Courier New", monospace;
   line-height: 1.6;
+  min-height: 100vh;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
 }
 
 .card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   padding: 24px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
 }
 
 .btn {
@@ -44,6 +53,7 @@ body {
   font-weight: bold;
   font-family: "Courier New", monospace;
   transition: opacity 0.2s ease;
+  box-shadow: 0 12px 32px rgba(108, 71, 255, 0.28);
 }
 
 .btn:hover {
@@ -66,7 +76,7 @@ body {
 }
 
 .input {
-  background: #1a1a2e;
+  background: rgba(19, 19, 32, 0.96);
   border: 1px solid var(--border);
   color: var(--text);
   border-radius: 8px;
@@ -113,6 +123,7 @@ body {
   gap: 8px;
   margin-bottom: 24px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
 }
 
 .tab-button {
@@ -197,6 +208,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-top: 16px;
+  min-width: 720px;
 }
 
 .table thead {
@@ -261,6 +273,122 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   margin-top: 24px;
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 20px;
+  margin: 20px 0 24px;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(108, 71, 255, 0.16), rgba(19, 19, 26, 0.92));
+  box-shadow: var(--shadow);
+}
+
+.hero-title {
+  margin-top: 8px;
+  font-size: clamp(28px, 4vw, 48px);
+  line-height: 1.05;
+}
+
+.hero-text {
+  margin-top: 12px;
+  color: var(--muted);
+  max-width: 54ch;
+}
+
+.eyebrow {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #d8d2ff;
+}
+
+.hero-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.mini-card,
+.passport-panel {
+  border: 1px solid var(--border);
+  background: rgba(10, 10, 18, 0.62);
+  border-radius: 16px;
+}
+
+.mini-card {
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+}
+
+.mini-card strong {
+  font-size: 14px;
+}
+
+.mini-card span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.passport-panel {
+  margin: 24px 0;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 18px;
+}
+
+.passport-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.passport-stat {
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.passport-stat span {
+  display: block;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.passport-stat strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 22px;
+  color: #fff;
+}
+
+.passport-stat small {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.table-shell {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.table-shell .table {
+  margin-top: 0;
 }
 
 .progress-bar {
@@ -355,9 +483,47 @@ body {
 }
 
 @media (max-width: 768px) {
+  .container {
+    padding: 16px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-right {
+    width: 100%;
+  }
+
+  .hero-panel,
+  .passport-panel,
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .passport-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-cards {
+    margin-top: 8px;
+  }
+
   .grid-2,
   .form-row {
     grid-template-columns: 1fr;
+  }
+
+  .tab-container {
+    flex-direction: column;
+  }
+
+  .tab-button {
+    width: 100%;
+    text-align: left;
+    padding-left: 8px;
   }
 
   .table {

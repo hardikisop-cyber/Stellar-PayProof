@@ -1,8 +1,9 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "PayProof — Blockchain Income Verification",
-  description: "Prove your on-chain income for freelancers and gig workers",
+  title: "PayProof — Income Passport on Stellar",
+  description:
+    "A mobile-first income reputation app that turns Stellar payments into verifiable credibility",
 };
 
 export default function RootLayout({ children }) {

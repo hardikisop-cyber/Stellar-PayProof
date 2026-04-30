@@ -24,6 +24,20 @@ export default function VerifyPage() {
   const [error, setError] = useState("");
   const [reputations, setReputations] = useState({});
 
+  const reputationValues = Object.values(reputations).filter(
+    (item) => item && item.score > 0,
+  );
+  const topReputation = reputationValues.reduce(
+    (best, item) => (item.score > best.score ? item : best),
+    { score: 0, paymentCount: 0, totalAmount: "0", lastPaymentTimestamp: 0 },
+  );
+  const averageReputation = reputationValues.length
+    ? Math.round(
+        reputationValues.reduce((sum, item) => sum + item.score, 0) /
+          reputationValues.length,
+      )
+    : 0;
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -176,6 +190,37 @@ export default function VerifyPage() {
           </a>
         </div>
 
+        <div className="passport-panel">
+          <div>
+            <div className="eyebrow">Income Passport</div>
+            <h3 style={{ marginTop: "6px" }}>
+              Verification beyond a payment list
+            </h3>
+            <p style={{ marginTop: "8px", color: "var(--muted)", fontSize: "13px" }}>
+              PayProof turns ledger history into a reputation profile that is
+              easier to understand and harder to fake.
+            </p>
+          </div>
+
+          <div className="passport-stats">
+            <div className="passport-stat">
+              <span>Top employer score</span>
+              <strong>{topReputation.score}/100</strong>
+              <small>{getReputationBadge(topReputation.score)}</small>
+            </div>
+            <div className="passport-stat">
+              <span>Average score</span>
+              <strong>{averageReputation}/100</strong>
+              <small>Across all paying employers</small>
+            </div>
+            <div className="passport-stat">
+              <span>Unique employers</span>
+              <strong>{reputationValues.length}</strong>
+              <small>Tracked in this passport</small>
+            </div>
+          </div>
+        </div>
+
         {summary && (
           <div className="summary-box">
             <div className="summary-item">
@@ -206,53 +251,55 @@ export default function VerifyPage() {
         <h3 style={{ marginTop: "32px", marginBottom: "16px" }}>
           Incoming Payments
         </h3>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Amount (XLM)</th>
-              <th>From</th>
-              <th>Employer Reputation</th>
-              <th>Ledger</th>
-              <th>Memo</th>
-            </tr>
-          </thead>
-          <tbody>
-            {history.map((payment, index) => {
-              const rep = reputations[payment.from] || {};
-              return (
-                <tr key={`${payment.hash}-${index}`}>
-                  <td>{new Date(payment.timestampMs).toLocaleString()}</td>
-                  <td>{payment.amountXlm.toFixed(7)}</td>
-                  <td>{shortAddress(payment.from)}</td>
-                  <td>
-                    <div style={{ fontSize: "12px" }}>
-                      <div>{getReputationBadge(rep.score || 0)}</div>
-                      {rep.score > 0 && (
-                        <div style={{ marginTop: "4px", color: "var(--muted)" }}>
-                          Score: {rep.score}/100
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                  <td>
-                    <a
-                      href={ledgerExplorerUrl(payment.ledger)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="link"
-                    >
-                      {payment.ledger}
-                    </a>
-                  </td>
-                  <td style={{ fontSize: "12px", color: "var(--muted)" }}>
-                    {payment.note || "-"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="table-shell">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Amount (XLM)</th>
+                <th>From</th>
+                <th>Employer Reputation</th>
+                <th>Ledger</th>
+                <th>Memo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((payment, index) => {
+                const rep = reputations[payment.from] || {};
+                return (
+                  <tr key={`${payment.hash}-${index}`}>
+                    <td>{new Date(payment.timestampMs).toLocaleString()}</td>
+                    <td>{payment.amountXlm.toFixed(7)}</td>
+                    <td>{shortAddress(payment.from)}</td>
+                    <td>
+                      <div style={{ fontSize: "12px" }}>
+                        <div>{getReputationBadge(rep.score || 0)}</div>
+                        {rep.score > 0 && (
+                          <div style={{ marginTop: "4px", color: "var(--muted)" }}>
+                            Score: {rep.score}/100
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td>
+                      <a
+                        href={ledgerExplorerUrl(payment.ledger)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="link"
+                      >
+                        {payment.ledger}
+                      </a>
+                    </td>
+                    <td style={{ fontSize: "12px", color: "var(--muted)" }}>
+                      {payment.note || "-"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
 
         <button
           className="btn"

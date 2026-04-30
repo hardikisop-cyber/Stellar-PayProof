@@ -211,6 +211,32 @@ export default function PayProofApp() {
         </div>
       </div>
 
+      <div className="hero-panel">
+        <div>
+          <div className="eyebrow">Level 4 Ready</div>
+          <h2 className="hero-title">Turn payroll into a trust signal.</h2>
+          <p className="hero-text">
+            PayProof records payments, builds reputation, and turns a simple
+            payout into a shareable income passport on Stellar.
+          </p>
+        </div>
+
+        <div className="hero-cards">
+          <div className="mini-card">
+            <strong>On-chain proof</strong>
+            <span>Soroban-backed verification</span>
+          </div>
+          <div className="mini-card">
+            <strong>Credibility scores</strong>
+            <span>Employer trust grows with consistency</span>
+          </div>
+          <div className="mini-card">
+            <strong>Mobile-ready flow</strong>
+            <span>Responsive cards, tabs, and tables</span>
+          </div>
+        </div>
+      </div>
+
       {status && (
         <div className={`status-message status-${statusType}`}>
           {status}
@@ -299,39 +325,41 @@ export default function PayProofApp() {
               <h3 style={{ marginBottom: "12px" }}>
                 Incoming History for Recipient
               </h3>
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Amount (XLM)</th>
-                    <th>From</th>
-                    <th>Ledger</th>
-                    <th>Memo</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.slice(0, 20).map((payment, index) => (
-                    <tr key={`${payment.hash}-${index}`}>
-                      <td>{new Date(payment.timestampMs).toLocaleString()}</td>
-                      <td>{payment.amountXlm.toFixed(7)}</td>
-                      <td>{shortAddress(payment.from)}</td>
-                      <td>
-                        <a
-                          href={ledgerExplorerUrl(payment.ledger)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="link"
-                        >
-                          {payment.ledger}
-                        </a>
-                      </td>
-                      <td style={{ fontSize: "12px", color: "var(--muted)" }}>
-                        {payment.note || "-"}
-                      </td>
+              <div className="table-shell">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Amount (XLM)</th>
+                      <th>From</th>
+                      <th>Ledger</th>
+                      <th>Memo</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {payments.slice(0, 20).map((payment, index) => (
+                      <tr key={`${payment.hash}-${index}`}>
+                        <td>{new Date(payment.timestampMs).toLocaleString()}</td>
+                        <td>{payment.amountXlm.toFixed(7)}</td>
+                        <td>{shortAddress(payment.from)}</td>
+                        <td>
+                          <a
+                            href={ledgerExplorerUrl(payment.ledger)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="link"
+                          >
+                            {payment.ledger}
+                          </a>
+                        </td>
+                        <td style={{ fontSize: "12px", color: "var(--muted)" }}>
+                          {payment.note || "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
         </div>
@@ -459,6 +487,16 @@ export default function PayProofApp() {
                 No batch submitted yet.
               </p>
             )}
+
+            <div style={{ marginTop: "20px" }}>
+              <div className="badge badge-purple" style={{ marginBottom: "12px" }}>
+                Level 5 concept: Income Passport
+              </div>
+              <p style={{ fontSize: "12px", color: "var(--muted)" }}>
+                Verified payments become a portable reputation profile instead of
+                just a transaction list.
+              </p>
+            </div>
           </div>
         </div>
       )}
